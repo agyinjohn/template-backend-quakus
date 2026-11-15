@@ -65,6 +65,9 @@ class ApiFlowTest {
     @Test
     void chooseAndChangeTemplateWithSampleData() {
         given().get("/api/templates").then().statusCode(200).body("size()", is(6)).body("[0].id", is("ecomas-01"));
+        given().get("/api/templates/ecomas-03/sample").then().statusCode(200)
+                .body("categories.size()", is(3)).body("products[0].images[0]", startsWith("/templates/ecomas/"));
+        given().get("/api/templates/nope/sample").then().statusCode(404);
         Owner o = signup("Template Shop");
         as(o).body(Map.of("templateId", "nope", "addSampleProducts", false))
                 .put("/api/admin/store/template").then().statusCode(400);
