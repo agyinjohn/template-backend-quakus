@@ -1,0 +1,614 @@
+{
+ "ecomas-01": {
+  "categories": [
+   "Furniture",
+   "Jewellery",
+   "Decor"
+  ],
+  "products": [
+   {
+    "name": "Chair",
+    "price": 48.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/01.png",
+    "rating": 5,
+    "category": "Furniture",
+    "featured": true
+   },
+   {
+    "name": "Bed",
+    "price": 48.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/02.png",
+    "rating": 5,
+    "category": "Jewellery",
+    "featured": true
+   },
+   {
+    "name": "Sofa",
+    "price": 48.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/03.png",
+    "rating": 5,
+    "category": "Decor",
+    "featured": true
+   },
+   {
+    "name": "Table",
+    "price": 48.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/04.png",
+    "rating": 5,
+    "category": "Furniture",
+    "featured": true
+   },
+   {
+    "name": "Side Drawer",
+    "price": 48.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/05.png",
+    "rating": 5,
+    "category": "Jewellery",
+    "featured": false
+   },
+   {
+    "name": "Marmont gold-tone ring",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/01.jpg",
+    "rating": 5,
+    "category": "Decor",
+    "featured": false
+   },
+   {
+    "name": "Pop gold baselight",
+    "price": 19.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/02.jpg",
+    "rating": 5,
+    "category": "Furniture",
+    "featured": false
+   },
+   {
+    "name": "Diamond vintage ring",
+    "price": 19.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/03.jpg",
+    "rating": 5,
+    "category": "Jewellery",
+    "featured": false
+   },
+   {
+    "name": "Amber earrings close-up",
+    "price": 23.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/04.jpg",
+    "rating": 5,
+    "category": "Decor",
+    "featured": false
+   },
+   {
+    "name": "Gold malachite earrings",
+    "price": 19.0,
+    "compareAtPrice": 27.0,
+    "image": "/templates/ecomas/assets/img/product/05.jpg",
+    "rating": 5,
+    "category": "Furniture",
+    "featured": false
+   },
+   {
+    "name": "Gold jewellery baselight",
+    "price": 16.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/06.jpg",
+    "rating": 5,
+    "category": "Jewellery",
+    "featured": false
+   },
+   {
+    "name": "Prong diamond ring",
+    "price": 102.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/07.jpg",
+    "rating": 5,
+    "category": "Decor",
+    "featured": false
+   }
+  ]
+ },
+ "ecomas-02": {
+  "categories": [
+   "Skincare",
+   "Make-up",
+   "Fragrance"
+  ],
+  "products": [
+   {
+    "name": "Super Boost Moisturizing Lip Gloss",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/13.png",
+    "rating": 5,
+    "category": "Skincare",
+    "featured": true
+   },
+   {
+    "name": "Mini Glycolic Acid 7% Exfoliating Toner",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/14.png",
+    "rating": 5,
+    "category": "Make-up",
+    "featured": true
+   },
+   {
+    "name": "Mini Radiant Creamy Concealer with Medium",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/15.png",
+    "rating": 5,
+    "category": "Fragrance",
+    "featured": true
+   },
+   {
+    "name": "Face Wash by Olay Regenerist",
+    "price": 19.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/16.jpg",
+    "rating": 5,
+    "category": "Skincare",
+    "featured": true
+   },
+   {
+    "name": "Kabuki Makeup Brush",
+    "price": 19.0,
+    "compareAtPrice": 27.0,
+    "image": "/templates/ecomas/assets/img/product/17.jpg",
+    "rating": 5,
+    "category": "Make-up",
+    "featured": false
+   },
+   {
+    "name": "Organic Face Sunscreen",
+    "price": 44.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/18.jpg",
+    "rating": 5,
+    "category": "Fragrance",
+    "featured": false
+   },
+   {
+    "name": "Pure Cosmetics Lip Gloss",
+    "price": 23.0,
+    "compareAtPrice": 25.0,
+    "image": "/templates/ecomas/assets/img/product/19.jpg",
+    "rating": 5,
+    "category": "Skincare",
+    "featured": false
+   },
+   {
+    "name": "Mineral Matte Finishing",
+    "price": 16.0,
+    "compareAtPrice": 22.0,
+    "image": "/templates/ecomas/assets/img/product/20.jpg",
+    "rating": 5,
+    "category": "Make-up",
+    "featured": false
+   },
+   {
+    "name": "Retinol Value Set Duo",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/21.jpg",
+    "rating": 5,
+    "category": "Fragrance",
+    "featured": false
+   },
+   {
+    "name": "Airspun Loose Face Powder",
+    "price": 124.0,
+    "compareAtPrice": 126.0,
+    "image": "/templates/ecomas/assets/img/product/22.jpg",
+    "rating": 5,
+    "category": "Skincare",
+    "featured": false
+   },
+   {
+    "name": "Grande Cosmetics Grande",
+    "price": 102.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/23.jpg",
+    "rating": 5,
+    "category": "Make-up",
+    "featured": false
+   },
+   {
+    "name": "Powder Creamy Natural",
+    "price": 102.0,
+    "compareAtPrice": 226.0,
+    "image": "/templates/ecomas/assets/img/product/24.jpg",
+    "rating": 5,
+    "category": "Fragrance",
+    "featured": false
+   }
+  ]
+ },
+ "ecomas-03": {
+  "categories": [
+   "Women",
+   "Men",
+   "Accessories"
+  ],
+  "products": [
+   {
+    "name": "Black Geometric Print Mini Dress",
+    "price": 80.0,
+    "compareAtPrice": 99.0,
+    "image": "/templates/ecomas/assets/img/product/32.jpg",
+    "rating": 4,
+    "category": "Women",
+    "featured": true
+   },
+   {
+    "name": "Men Formal Stylist Cotton Shirt",
+    "price": 80.0,
+    "compareAtPrice": 99.0,
+    "image": "/templates/ecomas/assets/img/product/33.jpg",
+    "rating": 4,
+    "category": "Men",
+    "featured": true
+   },
+   {
+    "name": "Fancy Printed Handwork Kurta",
+    "price": 89.0,
+    "compareAtPrice": 95.0,
+    "image": "/templates/ecomas/assets/img/product/34.jpg",
+    "rating": 4,
+    "category": "Accessories",
+    "featured": true
+   },
+   {
+    "name": "Mom Flare Wide Leg High Jeans",
+    "price": 75.0,
+    "compareAtPrice": 85.0,
+    "image": "/templates/ecomas/assets/img/product/35.jpg",
+    "rating": 4,
+    "category": "Women",
+    "featured": true
+   },
+   {
+    "name": "Printed Asymmetric Maxi Dress",
+    "price": 79.0,
+    "compareAtPrice": 89.0,
+    "image": "/templates/ecomas/assets/img/product/37.jpg",
+    "rating": 4,
+    "category": "Men",
+    "featured": false
+   },
+   {
+    "name": "La Boh\u00e8me Rose Gold",
+    "price": 74.0,
+    "compareAtPrice": 98.0,
+    "image": "/templates/ecomas/assets/img/product/38.jpg",
+    "rating": 4,
+    "category": "Accessories",
+    "featured": false
+   },
+   {
+    "name": "Classy Flare For Moment Dress",
+    "price": 75.0,
+    "compareAtPrice": 79.0,
+    "image": "/templates/ecomas/assets/img/product/39.jpg",
+    "rating": 4,
+    "category": "Women",
+    "featured": false
+   },
+   {
+    "name": "Non Slip Athletic Tennis Walking",
+    "price": 102.0,
+    "compareAtPrice": 226.0,
+    "image": "/templates/ecomas/assets/img/shop/18.png",
+    "rating": 4,
+    "category": "Men",
+    "featured": false
+   },
+   {
+    "name": "Vera Bradley Straw Tote Bag",
+    "price": 46.0,
+    "compareAtPrice": 96.0,
+    "image": "/templates/ecomas/assets/img/shop/19.png",
+    "rating": 4,
+    "category": "Accessories",
+    "featured": false
+   },
+   {
+    "name": "Whitetails Women's Open Sky",
+    "price": 76.0,
+    "compareAtPrice": 84.0,
+    "image": "/templates/ecomas/assets/img/shop/20.jpg",
+    "rating": 5,
+    "category": "Women",
+    "featured": false
+   }
+  ]
+ },
+ "ecomas-04": {
+  "categories": [
+   "Phones",
+   "Computers",
+   "Audio"
+  ],
+  "products": [
+   {
+    "name": "Galaxy Tab S6 Lite 10.4-inch Android Tablet 128GB",
+    "price": 247.0,
+    "compareAtPrice": 320.0,
+    "image": "/templates/ecomas/assets/img/product/galaxy.png",
+    "rating": 4,
+    "category": "Phones",
+    "featured": true
+   },
+   {
+    "name": "Tracker with IP67 Waterproof Pedometer Smart watch",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/watch.png",
+    "rating": 4,
+    "category": "Computers",
+    "featured": true
+   },
+   {
+    "name": "Cancelling Headphones Wireless",
+    "price": 120.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/headphone.png",
+    "rating": 4,
+    "category": "Audio",
+    "featured": true
+   },
+   {
+    "name": "Professional Camera 4K Digital Video Camera",
+    "price": 340.0,
+    "compareAtPrice": 475.0,
+    "image": "/templates/ecomas/assets/img/product/camera.png",
+    "rating": 4,
+    "category": "Phones",
+    "featured": true
+   },
+   {
+    "name": "Mini Portable PD 22.5W Fast Charging Powerbank",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/powerbank.png",
+    "rating": 4,
+    "category": "Computers",
+    "featured": false
+   },
+   {
+    "name": "CPU Cooler 2 Heat Pipes 120mm 4 Pin PWM RGB for Intel",
+    "price": 133.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/cpu.png",
+    "rating": 4,
+    "category": "Audio",
+    "featured": false
+   },
+   {
+    "name": "Playstation 4 2TB Slim Gaming Console",
+    "price": 142.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/gaming.png",
+    "rating": 4,
+    "category": "Phones",
+    "featured": false
+   },
+   {
+    "name": "Mini JBL CLIP 5 Ultra-portable Bluetooth Speaker",
+    "price": 97.0,
+    "compareAtPrice": 120.0,
+    "image": "/templates/ecomas/assets/img/product/speaker.png",
+    "rating": 4,
+    "category": "Computers",
+    "featured": false
+   },
+   {
+    "name": "Olufsen Beoplay HX \u2013 Comfortable Wireless ANC Over-Ear Headphones",
+    "price": 247.0,
+    "compareAtPrice": 320.0,
+    "image": "/templates/ecomas/assets/img/product/head.png",
+    "rating": 4,
+    "category": "Audio",
+    "featured": false
+   },
+   {
+    "name": "Archangel Gaming PC Desktop \u2013 Intel Core i7 12400F 3 GHz, RTX 3060",
+    "price": 972.0,
+    "compareAtPrice": null,
+    "image": "/templates/ecomas/assets/img/product/desktop.png",
+    "rating": 4,
+    "category": "Phones",
+    "featured": false
+   },
+   {
+    "name": "Yamaha Electric Violin-YEV104BL-Black String",
+    "price": 72.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/gitter.png",
+    "rating": 4,
+    "category": "Computers",
+    "featured": false
+   },
+   {
+    "name": "Microsoft Surface Pro 8-13\" Touchscreen",
+    "price": 340.0,
+    "compareAtPrice": 475.0,
+    "image": "/templates/ecomas/assets/img/product/tablet-2.png",
+    "rating": 4,
+    "category": "Audio",
+    "featured": false
+   }
+  ]
+ },
+ "ecomas-05": {
+  "categories": [
+   "Activewear",
+   "Accessories",
+   "Wellness"
+  ],
+  "products": [
+   {
+    "name": "Excel+ Scrunchies",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-1.jpg",
+    "rating": 5,
+    "category": "Activewear",
+    "featured": true
+   },
+   {
+    "name": "DYE Skipping Rope",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-2.jpg",
+    "rating": 5,
+    "category": "Accessories",
+    "featured": true
+   },
+   {
+    "name": "Mark Crew Socks 3pk",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-3.jpg",
+    "rating": 5,
+    "category": "Wellness",
+    "featured": true
+   },
+   {
+    "name": "Puremotion Muscle Tank V3",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-4.jpg",
+    "rating": 5,
+    "category": "Activewear",
+    "featured": true
+   },
+   {
+    "name": "MotionSoft Crop",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-5.jpg",
+    "rating": 5,
+    "category": "Accessories",
+    "featured": false
+   },
+   {
+    "name": "Mark Drop Tee V3",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-6.jpg",
+    "rating": 5,
+    "category": "Wellness",
+    "featured": false
+   },
+   {
+    "name": "Desire Onesie - Charcoal",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-7.jpg",
+    "rating": 5,
+    "category": "Activewear",
+    "featured": false
+   },
+   {
+    "name": "Womens Scoop Tank",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/shop/latest-8.jpg",
+    "rating": 5,
+    "category": "Accessories",
+    "featured": false
+   }
+  ]
+ },
+ "ecomas-06": {
+  "categories": [
+   "Rings",
+   "Earrings",
+   "Necklaces"
+  ],
+  "products": [
+   {
+    "name": "Marmont gold-tone ring",
+    "price": 76.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/40.jpg",
+    "rating": 5,
+    "category": "Rings",
+    "featured": true
+   },
+   {
+    "name": "Pop gold baselight",
+    "price": 19.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/41.jpg",
+    "rating": 5,
+    "category": "Earrings",
+    "featured": true
+   },
+   {
+    "name": "Diamond vintage ring",
+    "price": 19.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/42.jpg",
+    "rating": 5,
+    "category": "Necklaces",
+    "featured": true
+   },
+   {
+    "name": "Amber earrings close-up",
+    "price": 23.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/43.jpg",
+    "rating": 5,
+    "category": "Rings",
+    "featured": true
+   },
+   {
+    "name": "Gold malachite earrings",
+    "price": 19.0,
+    "compareAtPrice": 27.0,
+    "image": "/templates/ecomas/assets/img/product/44.jpg",
+    "rating": 5,
+    "category": "Earrings",
+    "featured": false
+   },
+   {
+    "name": "Gold jewellery baselight",
+    "price": 16.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/45.jpg",
+    "rating": 5,
+    "category": "Necklaces",
+    "featured": false
+   },
+   {
+    "name": "Prong diamond ring",
+    "price": 102.0,
+    "compareAtPrice": "",
+    "image": "/templates/ecomas/assets/img/product/46.jpg",
+    "rating": 5,
+    "category": "Rings",
+    "featured": false
+   },
+   {
+    "name": "Malachite earrings",
+    "price": 123.0,
+    "compareAtPrice": 126.0,
+    "image": "/templates/ecomas/assets/img/product/47.jpg",
+    "rating": 5,
+    "category": "Earrings",
+    "featured": false
+   }
+  ]
+ }
+}
