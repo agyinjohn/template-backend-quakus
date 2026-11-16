@@ -48,17 +48,48 @@ public class StorefrontResource {
             @NotBlank @Size(max = 100) String city,
             @Size(max = 100) String country,
             @Size(max = 2000) String notes,
-            @NotEmpty @Size(max = 50) List<@Valid CheckoutItem> items) {}
+            @NotEmpty @Size(max = 50) List<@Valid CheckoutItem> items,
+            /** Defaults to the store's first available method. */
+            CustomerOrder.PaymentMethod paymentMethod) {}
 
-    /** {@code confirmationEmail} is the address a confirmation was sent to, or null if email is off. */
+    /**
+     * {@code confirmationEmail}: the address a confirmation was sent to, or null if none was sent (yet).
+     * {@code paymentUrl}: for online payment, the Paystack page to send the shopper to.
+     * {@code paymentInstructions}: for bank transfer, the store's instructions.
+     */
     public record OrderConfirmation(String number, BigDecimal total, String currency, String status,
-                                    String confirmationEmail) {}
+                                    String confirmationEmail, String paymentMethod, boolean paid,
+                                    String paymentUrl, String paymentInstructions) {}
+
+    public record VerifyRequest(@NotBlank @Size(max = 100) String reference) {}
+
+    @jakarta.inject.Inject
+    com.apex.commerce.payments.PaymentService payments;
 
     @jakarta.inject.Inject
     jakarta.enterprise.event.Event<com.apex.commerce.mail.OrderEmail> orderEvents;
 
     @jakarta.inject.Inject
     com.apex.commerce.mail.OrderMailer mailer;
+
+    @jakarta.inject.Inject
+    com.fasterxml.jackson.databind.ObjectMapper mapper;
+
+    /**
+     * Paystack webhook. Each store adds this URL in its own Paystack dashboard
+     * (Settings, API keys and webhooks). Requests are authenticated by their
+     * HMAC signature using the store's secret key.
+     */
+    @POST
+    @Path("/payments/paystack-webhook")
+    @jakarta.ws.rs.Consumes(jakarta.ws.rs.core.MediaType.WILDCARD)
+    public Response paystackWebhook(@PathParam("slug") String slug, String body,
+                                    @jakarta.ws.rs.HeaderParam("x-paystack-signature") String signature) {
+        Store store = Store.findBySlug(slug).orElseThrow(() -> ApiException.notFound("Store"));
+        return payments.webhook(store, body, signature, mapper)
+                ? Response.ok().build()
+                : Response.status(Response.Status.UNAUTHORIZED).build();
+    }
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -141,6 +172,7 @@ public class StorefrontResource {
         order.city = req.city();
         order.country = req.country();
         order.notes = req.notes();
+        order.paymentMethod = choosePaymentMethod(store, req.paymentMethod());
 
         Map<Long, Integer> quantities = new HashMap<>();
         for (CheckoutItem i : req.items()) {
@@ -172,12 +204,65 @@ public class StorefrontResource {
         order.total = subtotal; // shipping/tax rules can be added per store later
         order.number = newOrderNumber();
         order.persist();
+
+        if (order.paymentMethod == CustomerOrder.PaymentMethod.PAYSTACK) {
+            // stock stays reserved while the shopper pays; emails go out once payment is confirmed
+            String url;
+            try {
+                url = payments.start(order);
+            } catch (com.apex.commerce.payments.PaystackClient.PaystackException e) {
+                // roll back the order and stock reservation: nothing was charged
+                throw new ApiException(Response.Status.BAD_GATEWAY,
+                        "Online payment isn't available right now. Please choose another payment method or try again. ("
+                                + e.getMessage() + ")");
+            }
+            return Response.status(Response.Status.CREATED).entity(confirmation(order, null, url)).build();
+        }
         // emails go out after the transaction commits (see OrderMailer)
         orderEvents.fire(com.apex.commerce.mail.OrderEmail.of(com.apex.commerce.mail.OrderEmail.Kind.PLACED, order));
         return Response.status(Response.Status.CREATED)
-                .entity(new OrderConfirmation(order.number, order.total, order.currency, order.status.name(),
-                        mailer.isEnabled() ? order.email : null))
+                .entity(confirmation(order, mailer.isEnabled() ? order.email : null, null))
                 .build();
+    }
+
+    /**
+     * Called by the storefront when the shopper comes back from Paystack. Asks
+     * Paystack whether the payment succeeded; safe to call more than once.
+     */
+    @POST
+    @Path("/payments/verify")
+    public OrderConfirmation verifyPayment(@PathParam("slug") String slug, @Valid VerifyRequest req) {
+        Store store = published(slug);
+        CustomerOrder order;
+        try {
+            order = payments.confirm(store, req.reference());
+        } catch (com.apex.commerce.payments.PaystackClient.PaystackException e) {
+            throw new ApiException(Response.Status.BAD_GATEWAY, "Couldn't confirm the payment with Paystack. Please refresh in a moment.");
+        }
+        if (order == null) {
+            throw ApiException.notFound("Order");
+        }
+        return confirmation(order, order.isPaid() && mailer.isEnabled() ? order.email : null, null);
+    }
+
+    private OrderConfirmation confirmation(CustomerOrder o, String emailedTo, String paymentUrl) {
+        String instructions = o.paymentMethod == CustomerOrder.PaymentMethod.BANK_TRANSFER ? o.store.bankTransferInstructions : null;
+        return new OrderConfirmation(o.number, o.total, o.currency, o.status.name(), emailedTo,
+                o.paymentMethod.name(), o.isPaid(), paymentUrl, instructions);
+    }
+
+    private static CustomerOrder.PaymentMethod choosePaymentMethod(Store store, CustomerOrder.PaymentMethod requested) {
+        List<CustomerOrder.PaymentMethod> available = StoreView.paymentMethods(store);
+        if (available.isEmpty()) {
+            throw ApiException.badRequest("This store isn't accepting orders right now (no payment methods are set up)");
+        }
+        if (requested == null) {
+            return available.get(0);
+        }
+        if (!available.contains(requested)) {
+            throw ApiException.badRequest("This store doesn't accept " + requested.label.toLowerCase());
+        }
+        return requested;
     }
 
     private static String newOrderNumber() {

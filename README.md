@@ -36,6 +36,9 @@ createdb apex_commerce -O apex
 | `MAIL_START_TLS`, `MAIL_LOGIN` | `REQUIRED`, `REQUIRED` | Set to `DISABLED` for a local test SMTP server |
 | `MAIL_MOCK` | `true` in dev/test, `false` in production | `true` logs emails instead of sending them |
 | `MAIL_ENABLED` | `true` | `false` turns order emails off entirely (checkout then doesn't promise one) |
+| `APP_ENCRYPTION_KEY` | dev key (dev/test only) | 32-byte base64 key that encrypts stores' Paystack secret keys. **Required in production** (`openssl rand -base64 32`). Keep it safe: if it changes, stores must reconnect Paystack. |
+| `PAYSTACK_BASE_URL` | `https://api.paystack.co` | Only change for testing against a fake Paystack |
+| `PAYMENT_EXPIRY_MINUTES` | `60` | Unpaid online orders are cancelled (stock released) after this long |
 
 Generate production keys with:
 
@@ -67,13 +70,42 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | GET | `/api/public/stores/{slug}/products/{productSlug}` | |
 | POST | `/api/public/stores/{slug}/orders` | checkout; prices come from the database and stock is reserved atomically |
 
+## Payments
+
+Each store connects **its own Paystack account** (Store settings → Payments), so money goes straight to
+the store owner. The secret key is checked with Paystack, stored encrypted, and never returned by the API.
+Stores can also offer direct bank transfer (with their own instructions) and cash on delivery.
+
+Online payment flow:
+
+1. Checkout with `paymentMethod: PAYSTACK` creates the order (stock reserved, unpaid) and a Paystack
+   transaction with an unguessable reference, and returns `paymentUrl` (Paystack's hosted page:
+   cards and mobile money).
+2. Paystack sends the shopper back to `/s/<slug>/checkout/complete?reference=…`; the frontend calls
+   `POST /api/public/stores/{slug}/payments/verify`, which asks Paystack. Success → order `PAID` and the
+   confirmation emails go out. Failed/abandoned → the attempt is cancelled right away so the stock is free
+   for a retry. Still in progress (e.g. waiting for mobile-money approval) → left open.
+3. Paystack's webhook (`POST /api/public/stores/{slug}/payments/paystack-webhook`, signed with the store's
+   key) confirms payments when the shopper never comes back. Each store pastes this URL into its Paystack
+   dashboard; the admin shows it.
+4. Every 5 minutes, unpaid online orders older than `PAYMENT_EXPIRY_MINUTES` are checked with Paystack once
+   more and cancelled if still unpaid.
+
+Amounts and currency are checked against the order before anything is marked paid, and a payment that is
+confirmed twice (return page and webhook) is only processed once.
+
+| Method | Path | |
+|---|---|---|
+| GET/PUT | `/api/admin/store/payments` | payment settings: bank transfer (+ instructions), cash on delivery |
+| PUT/DELETE | `/api/admin/store/payments/paystack` | connect (`{secretKey}`) or disconnect Paystack |
+
 ## Order emails
 
 Sent after the order is saved, in the background (a mail outage never blocks a checkout; failures are logged):
 
 | When | To | Reply-to |
 |---|---|---|
-| Order placed | shopper: confirmation with items, total, address, payment method | store |
+| Order placed (online payments: once paid) | shopper: confirmation with items, total, address, payment method, bank details for transfers | store |
 | Order placed | store contact email (or the owner's login email): new-order alert with a dashboard link | shopper |
 | Status → paid, shipped, delivered, cancelled | shopper: status update | store |
 

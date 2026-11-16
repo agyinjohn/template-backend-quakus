@@ -40,6 +40,29 @@ public class Store extends PanacheEntity {
     @Column(nullable = false)
     public boolean published = true;
 
+    // ------------------------------------------------------------ payments
+    /** Paystack secret key, encrypted with {@link com.apex.commerce.common.SecretBox}. Never sent to clients. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @Column(length = 500)
+    public String paystackSecretKeyEnc;
+
+    /** Last 4 characters and mode of the key, for showing "sk_live_…a1b2" in settings. */
+    public String paystackKeyHint;
+
+    // defaults let existing rows upgrade in place
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean bankTransferEnabled = true;
+
+    @Column(length = 2000)
+    public String bankTransferInstructions;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean cashOnDeliveryEnabled = true;
+
+    public boolean paystackConnected() {
+        return paystackSecretKeyEnc != null;
+    }
+
     @Column(nullable = false)
     public Instant createdAt = Instant.now();
 

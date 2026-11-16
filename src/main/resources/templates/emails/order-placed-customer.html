@@ -6,7 +6,8 @@
     <p style="margin:0 0 4px;font-size:14px;color:#6b7280">{o.storeName}</p>
     <h1 style="margin:0;font-size:22px">Thank you for your order, {o.customerName}!</h1>
     <p style="margin:12px 0 0;font-size:15px;line-height:1.5">We've received your order <strong>{o.number}</strong>.
-      The store will be in touch about payment and delivery.</p>
+      {#if o.paid}Your payment{#if o.paymentChannel} by {o.paymentChannel}{/if} was successful, and the store will be in touch about delivery.
+      {#else}The store will be in touch about payment and delivery.{/if}</p>
   </td></tr>
   <tr><td style="padding:16px 28px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">
@@ -25,6 +26,10 @@
   <tr><td style="padding:8px 28px 16px;font-size:14px;line-height:1.5">
     <p style="margin:0 0 4px;font-weight:bold">Delivery address</p>
     <p style="margin:0">{o.customerName}<br>{o.address}<br>{o.city}{#if o.country}, {o.country}{/if}{#if o.phone}<br>{o.phone}{/if}</p>
+    <p style="margin:12px 0 0"><strong>Payment:</strong> {o.paymentMethod}{#if o.paid} (paid){/if}</p>
+    {#if o.paymentInstructions}
+    <div style="margin:12px 0 0;padding:12px 14px;background:#fff7ed;border-radius:6px;white-space:pre-line">{o.paymentInstructions}</div>
+    {/if}
     {#if o.notes}<p style="margin:12px 0 0;white-space:pre-line;color:#4b5563">{o.notes}</p>{/if}
   </td></tr>
   <tr><td style="padding:8px 28px 28px;font-size:14px;line-height:1.5;color:#4b5563">

@@ -14,7 +14,8 @@ public record OrderEmail(
         String storeName, String storeSlug, String storeEmail, String storePhone, String ownerEmail,
         String number, Long orderId, CustomerOrder.Status status,
         String customerName, String customerEmail, String phone, String address, String city, String country,
-        String notes, List<Line> items, BigDecimal total, String currency) {
+        String notes, List<Line> items, BigDecimal total, String currency,
+        String paymentMethod, boolean paid, String paymentChannel, String paymentInstructions) {
 
     public enum Kind { PLACED, STATUS_CHANGED }
 
@@ -27,7 +28,19 @@ public record OrderEmail(
         return new OrderEmail(kind, s.name, s.slug, s.email, s.phone, owner,
                 o.number, o.id, o.status, o.customerName, o.email, o.phone, o.address, o.city, o.country, o.notes,
                 o.items.stream().map(i -> new Line(i.name, i.quantity, i.unitPrice, i.lineTotal)).toList(),
-                o.total, o.currency);
+                o.total, o.currency, o.paymentMethod.label, o.isPaid(), channelLabel(o.paymentChannel),
+                o.paymentMethod == CustomerOrder.PaymentMethod.BANK_TRANSFER && !o.isPaid() ? s.bankTransferInstructions : null);
+    }
+
+    static String channelLabel(String channel) {
+        if (channel == null) {
+            return null;
+        }
+        return switch (channel) {
+            case "mobile_money" -> "mobile money";
+            case "bank_transfer" -> "bank transfer";
+            default -> channel.replace('_', ' ');
+        };
     }
 
     /** Where the store owner hears about new orders: the store's contact email, else the owner's login. */

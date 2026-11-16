@@ -68,6 +68,9 @@ public class OrderAdminResource {
         }
         boolean changed = o.status != req.status();
         o.status = req.status();
+        if (req.status() == CustomerOrder.Status.PAID && o.paidAt == null) {
+            o.paidAt = java.time.Instant.now(); // owner confirmed a bank transfer / cash payment
+        }
         if (changed) {
             // the shopper is emailed about payment, shipping, delivery and cancellation
             orderEvents.fire(com.apex.commerce.mail.OrderEmail.of(com.apex.commerce.mail.OrderEmail.Kind.STATUS_CHANGED, o));

@@ -23,6 +23,16 @@ public class CustomerOrder extends PanacheEntity {
 
     public enum Status { PENDING, PAID, SHIPPED, DELIVERED, CANCELLED }
 
+    public enum PaymentMethod {
+        PAYSTACK("Paid online"), BANK_TRANSFER("Direct bank transfer"), CASH_ON_DELIVERY("Cash on delivery");
+
+        public final String label;
+
+        PaymentMethod(String label) {
+            this.label = label;
+        }
+    }
+
     @JsonIgnore
     @ManyToOne(optional = false)
     public Store store;
@@ -56,6 +66,29 @@ public class CustomerOrder extends PanacheEntity {
 
     @Column(nullable = false)
     public String currency = "USD";
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32, columnDefinition = "varchar(32) default 'BANK_TRANSFER'")
+    public PaymentMethod paymentMethod = PaymentMethod.BANK_TRANSFER;
+
+    /** Set once payment is confirmed (by Paystack, or by the owner marking the order paid). */
+    public Instant paidAt;
+
+    /** Paystack transaction reference for online payments. */
+    @Column(unique = true)
+    public String paymentReference;
+
+    /** How an online payment was made, e.g. "card" or "mobile_money". */
+    public String paymentChannel;
+
+    public boolean isPaid() {
+        return paidAt != null;
+    }
+
+    /** Online orders the shopper hasn't paid for yet. */
+    public boolean isAwaitingPayment() {
+        return paymentMethod == PaymentMethod.PAYSTACK && paidAt == null && status == Status.PENDING;
+    }
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     public List<OrderItem> items = new ArrayList<>();
