@@ -69,7 +69,7 @@ public class TemplateResource {
                     null, 25, List.of(p.get("image").asText()), List.of(), p.path("featured").asBoolean(),
                     Product.Status.ACTIVE, p.path("rating").asInt(5),
                     cat == null ? null : new CategoryView(cat.id(), cat.name(), cat.slug(), null, cat.position(), -1),
-                    now.minusSeconds(-pid * 60), now));
+                    now.minusSeconds(-pid * 60), now, List.of(), List.of()));
             pid--;
         }
         return new Sample(categories, products);

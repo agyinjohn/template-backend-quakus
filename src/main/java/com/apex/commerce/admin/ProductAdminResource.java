@@ -53,7 +53,16 @@ public class ProductAdminResource {
             @Size(max = 20) List<String> tags,
             boolean featured,
             Product.Status status,
-            @Min(0) @Max(5) Integer rating) {}
+            @Min(0) @Max(5) Integer rating,
+            @Size(max = 3, message = "can have at most 3 options") List<@Valid OptionInput> options,
+            @Size(max = 100, message = "can have at most 100 variants") List<@Valid VariantInput> variants) {}
+
+    public record OptionInput(@NotBlank @Size(max = 30) String name,
+                              @jakarta.validation.constraints.NotEmpty @Size(max = 30) List<@NotBlank @Size(max = 40) String> values) {}
+
+    public record VariantInput(Long id, @jakarta.validation.constraints.NotEmpty List<String> values,
+                               @DecimalMin("0.00") BigDecimal price, @DecimalMin("0.00") BigDecimal compareAtPrice,
+                               @Size(max = 80) String sku, @Min(0) int stock, @Size(max = 1000) String imageUrl) {}
 
     @Inject
     CurrentUser currentUser;
@@ -139,6 +148,7 @@ public class ProductAdminResource {
         p.featured = req.featured();
         p.status = req.status() == null ? Product.Status.ACTIVE : req.status();
         p.rating = req.rating() == null ? 5 : req.rating();
+        applyOptions(p, req);
         p.images = new ArrayList<>(req.images() == null ? List.of() : req.images());
         p.tags = new ArrayList<>(req.tags() == null ? List.of() : req.tags());
         p.category = null;
@@ -149,6 +159,100 @@ public class ProductAdminResource {
             }
             p.category = c;
         }
+    }
+
+    /**
+     * Replaces the product's options and variants. Variants are matched by id (or
+     * by their option values) so existing ones keep their ids and order history.
+     */
+    private void applyOptions(Product p, ProductRequest req) {
+        List<OptionInput> options = req.options() == null ? List.of() : req.options();
+        List<VariantInput> variants = req.variants() == null ? List.of() : req.variants();
+        var names = new java.util.HashSet<String>();
+        List<Product.Option> clean = new ArrayList<>();
+        for (OptionInput o : options) {
+            String name = o.name().trim();
+            if (!names.add(name.toLowerCase())) {
+                throw ApiException.badRequest("Option names must be different (\"" + name + "\" is used twice)");
+            }
+            List<String> values = o.values().stream().map(String::trim).toList();
+            if (new java.util.HashSet<>(values.stream().map(String::toLowerCase).toList()).size() != values.size()) {
+                throw ApiException.badRequest("Each value of \"" + name + "\" must be different");
+            }
+            clean.add(new Product.Option(name, values));
+        }
+        if (clean.isEmpty()) {
+            if (!variants.isEmpty()) {
+                throw ApiException.badRequest("Add options (like Size or Colour) before adding variants");
+            }
+            p.options = new ArrayList<>();
+            p.variants.clear();
+            return;
+        }
+        if (variants.isEmpty()) {
+            throw ApiException.badRequest("Add at least one variant (a combination of option values) with its stock");
+        }
+        var seen = new java.util.HashSet<String>();
+        var existing = new java.util.HashMap<Long, com.apex.commerce.catalog.ProductVariant>();
+        var byTitle = new java.util.HashMap<String, com.apex.commerce.catalog.ProductVariant>();
+        for (var v : p.variants) {
+            existing.put(v.id, v);
+            byTitle.put(v.title().toLowerCase(), v);
+        }
+        List<com.apex.commerce.catalog.ProductVariant> next = new ArrayList<>();
+        int total = 0;
+        for (int i = 0; i < variants.size(); i++) {
+            VariantInput in = variants.get(i);
+            List<String> values = in.values().stream().map(v -> v == null ? "" : v.trim()).toList();
+            if (values.size() != clean.size()) {
+                throw ApiException.badRequest("Each variant needs a value for every option");
+            }
+            for (int j = 0; j < values.size(); j++) {
+                final String val = values.get(j);
+                final Product.Option option = clean.get(j);
+                String match = option.values().stream().filter(a -> a.equalsIgnoreCase(val)).findFirst()
+                        .orElseThrow(() -> ApiException.badRequest("\"" + val + "\" isn't a value of " + option.name()));
+                values = replace(values, j, match); // normalise to the option's spelling
+            }
+            String title = String.join(" / ", values);
+            if (!seen.add(title.toLowerCase())) {
+                throw ApiException.badRequest("The variant " + title + " is listed twice");
+            }
+            BigDecimal effective = in.price() != null ? in.price() : req.price();
+            BigDecimal compare = in.price() != null ? in.compareAtPrice() : req.compareAtPrice();
+            if (compare != null && compare.compareTo(effective) <= 0) {
+                throw ApiException.badRequest("Compare-at price for " + title + " must be higher than its price");
+            }
+            var v = in.id() != null && existing.containsKey(in.id()) ? existing.get(in.id()) : byTitle.get(title.toLowerCase());
+            if (v == null || next.contains(v)) {
+                v = new com.apex.commerce.catalog.ProductVariant();
+                v.product = p;
+            }
+            v.setValues(values);
+            v.price = in.price();
+            v.compareAtPrice = in.price() != null ? in.compareAtPrice() : null;
+            v.sku = in.sku() == null || in.sku().isBlank() ? null : in.sku().trim();
+            v.stock = in.stock();
+            v.imageUrl = in.imageUrl() == null || in.imageUrl().isBlank() ? null : in.imageUrl();
+            v.position = i;
+            next.add(v);
+            total += in.stock();
+        }
+        p.options = clean;
+        p.variants.retainAll(next);
+        for (var v : next) {
+            if (!p.variants.contains(v)) {
+                p.variants.add(v);
+            }
+        }
+        p.variants.sort(java.util.Comparator.comparingInt(v -> v.position));
+        p.stock = total; // a product's stock is the total of its variants
+    }
+
+    private static List<String> replace(List<String> list, int index, String value) {
+        List<String> copy = new ArrayList<>(list);
+        copy.set(index, value);
+        return copy;
     }
 
     private Product owned(Long id) {

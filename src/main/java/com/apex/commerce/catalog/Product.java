@@ -52,8 +52,24 @@ public class Product extends PanacheEntity {
 
     public String sku;
 
+    /** For products with variants, kept equal to the sum of the variants' stock. */
     @Column(nullable = false)
     public int stock = 0;
+
+    /** Up to 3 options, e.g. [{name: "Size", values: ["S","M","L"]}, {name: "Colour", ...}]. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 4000)
+    public List<Option> options = new ArrayList<>();
+
+    @jakarta.persistence.OneToMany(mappedBy = "product", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @jakarta.persistence.OrderBy("position, id")
+    public List<ProductVariant> variants = new ArrayList<>();
+
+    public record Option(String name, List<String> values) {}
+
+    public boolean hasVariants() {
+        return options != null && !options.isEmpty();
+    }
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))

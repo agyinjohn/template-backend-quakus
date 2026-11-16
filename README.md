@@ -62,7 +62,7 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | GET/PUT | `/api/admin/store` | store settings (name, contact, currency, socials, published) |
 | PUT | `/api/admin/store/template` | `{templateId, addSampleProducts}`: choose or change the design |
 | POST | `/api/admin/store/sample-data` | add demo products matching the template |
-| GET/POST/PUT/DELETE | `/api/admin/products[/{id}]` | product CRUD, search `q`, filter `categoryId`, `status` |
+| GET/POST/PUT/DELETE | `/api/admin/products[/{id}]` | product CRUD, search `q`, filter `categoryId`, `status`; `options` + `variants` for sizes/colours (see below) |
 | GET/POST/PUT/DELETE | `/api/admin/categories[/{id}]` | category CRUD |
 | GET, PATCH | `/api/admin/orders[/{id}]` | list orders, change status (cancel restocks) |
 | GET | `/api/admin/dashboard` | counts, revenue, recent orders, low stock |
@@ -72,6 +72,16 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | GET | `/api/public/stores/{slug}/products` | `category`, `q`, `featured`, `sort`, `page`, `size` |
 | GET | `/api/public/stores/{slug}/products/{productSlug}` | |
 | POST | `/api/public/stores/{slug}/orders` | checkout; prices come from the database and stock is reserved atomically |
+
+## Product options (variants)
+
+A product can have up to 3 options (`options: [{name: "Size", values: ["S","M"]}, …]`) and up to 100
+variants, one per combination the owner sells (`variants: [{id?, values: ["S","Black"], price?, compareAtPrice?,
+sku?, stock, imageUrl?}]`). A variant without a price uses the product's. Saving matches variants by id (or
+by values) so existing variants keep their ids. The product's `stock` is the total of its variants.
+
+Checkout items carry `variantId` (required for products with options). Stock is reserved and released per
+variant, atomically, via `Inventory`; order items keep `variantTitle` (e.g. "M / Black") for orders and emails.
 
 ## Accounts and password reset
 

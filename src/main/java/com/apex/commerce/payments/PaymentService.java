@@ -95,9 +95,7 @@ public class PaymentService {
 
     private static void release(CustomerOrder order, String note) {
         for (OrderItem item : order.items) {
-            if (item.productId != null) {
-                Product.update("stock = stock + ?1 where id = ?2", item.quantity, item.productId);
-            }
+            com.apex.commerce.catalog.Inventory.release(item.productId, item.variantId, item.quantity);
         }
         order.status = CustomerOrder.Status.CANCELLED;
         order.notes = (order.notes == null ? "" : order.notes + "\n") + note;
@@ -176,7 +174,7 @@ public class PaymentService {
             boolean short_ = false;
             for (OrderItem item : order.items) {
                 if (item.productId != null
-                        && Product.update("stock = stock - ?1 where id = ?2 and stock >= ?1", item.quantity, item.productId) == 0) {
+                        && !com.apex.commerce.catalog.Inventory.reserve(item.productId, item.variantId, item.quantity)) {
                     short_ = true;
                 }
             }

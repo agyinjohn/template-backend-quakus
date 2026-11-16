@@ -38,7 +38,8 @@ import java.util.Map;
 @Path("/api/public/stores/{slug}")
 public class StorefrontResource {
 
-    public record CheckoutItem(@NotNull Long productId, @Min(1) @Max(100) int quantity) {}
+    /** {@code variantId} is required for products with options. */
+    public record CheckoutItem(@NotNull Long productId, Long variantId, @Min(1) @Max(100) int quantity) {}
 
     public record CheckoutRequest(
             @NotBlank @Size(max = 120) String customerName,
@@ -174,29 +175,49 @@ public class StorefrontResource {
         order.notes = req.notes();
         order.paymentMethod = choosePaymentMethod(store, req.paymentMethod());
 
-        Map<Long, Integer> quantities = new HashMap<>();
+        // the same product/variant added twice counts as one line
+        Map<List<Long>, Integer> quantities = new java.util.LinkedHashMap<>();
         for (CheckoutItem i : req.items()) {
-            quantities.merge(i.productId(), i.quantity(), Integer::sum);
+            quantities.merge(java.util.Arrays.asList(i.productId(), i.variantId()), i.quantity(), Integer::sum);
         }
         BigDecimal subtotal = BigDecimal.ZERO;
         for (var entry : quantities.entrySet()) {
-            Product p = Product.findById(entry.getKey());
+            Long productId = entry.getKey().get(0);
+            Long variantId = entry.getKey().get(1);
+            Product p = Product.findById(productId);
             if (p == null || !p.store.id.equals(store.id) || p.status != Product.Status.ACTIVE) {
-                throw ApiException.badRequest("Product " + entry.getKey() + " is not available");
+                throw ApiException.badRequest("Product " + productId + " is not available");
+            }
+            com.apex.commerce.catalog.ProductVariant variant = null;
+            if (p.hasVariants()) {
+                variant = p.variants.stream().filter(v -> v.id.equals(variantId)).findFirst().orElse(null);
+                if (variant == null) {
+                    throw ApiException.badRequest("Please choose " + p.options.stream()
+                            .map(o -> o.name().toLowerCase()).collect(java.util.stream.Collectors.joining(" and ")) + " for " + p.name);
+                }
+            } else if (variantId != null) {
+                throw ApiException.badRequest(p.name + " has no options to choose");
             }
             int qty = entry.getValue();
-            int updated = Product.update("stock = stock - ?1 where id = ?2 and stock >= ?1", qty, p.id);
-            if (updated == 0) {
-                throw ApiException.conflict("Only " + p.stock + " left of " + p.name);
+            if (!com.apex.commerce.catalog.Inventory.reserve(p.id, variant == null ? null : variant.id, qty)) {
+                int left = variant == null ? p.stock : variant.stock;
+                String what = variant == null ? p.name : p.name + " (" + variant.title() + ")";
+                throw ApiException.conflict(left == 0 ? what + " is sold out" : "Only " + left + " left of " + what);
             }
+            BigDecimal unit = variant == null ? p.price : variant.effectivePrice();
             OrderItem item = new OrderItem();
             item.order = order;
             item.productId = p.id;
             item.name = p.name;
-            item.imageUrl = p.images.isEmpty() ? null : p.images.get(0);
-            item.unitPrice = p.price;
+            if (variant != null) {
+                item.variantId = variant.id;
+                item.variantTitle = variant.title();
+            }
+            String image = variant != null && variant.imageUrl != null ? variant.imageUrl : p.images.isEmpty() ? null : p.images.get(0);
+            item.imageUrl = image;
+            item.unitPrice = unit;
             item.quantity = qty;
-            item.lineTotal = p.price.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP);
+            item.lineTotal = unit.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP);
             order.items.add(item);
             subtotal = subtotal.add(item.lineTotal);
         }

@@ -23,12 +23,23 @@ public final class CatalogViews {
             Long id, String name, String slug, String shortDescription, String description,
             BigDecimal price, BigDecimal compareAtPrice, String sku, int stock,
             List<String> images, List<String> tags, boolean featured, Product.Status status, int rating,
-            CategoryView category, Instant createdAt, Instant updatedAt) {
+            CategoryView category, Instant createdAt, Instant updatedAt,
+            List<Product.Option> options, List<VariantView> variants) {
 
         public static ProductView of(Product p) {
             return new ProductView(p.id, p.name, p.slug, p.shortDescription, p.description, p.price,
                     p.compareAtPrice, p.sku, p.stock, List.copyOf(p.images), List.copyOf(p.tags), p.featured,
-                    p.status, p.rating, CategoryView.brief(p.category), p.createdAt, p.updatedAt);
+                    p.status, p.rating, CategoryView.brief(p.category), p.createdAt, p.updatedAt,
+                    p.options == null ? List.of() : List.copyOf(p.options),
+                    p.hasVariants() ? p.variants.stream().map(VariantView::of).toList() : List.of());
+        }
+    }
+
+    /** {@code price}/{@code compareAtPrice} are null when the variant uses the product's prices. */
+    public record VariantView(Long id, List<String> values, String title, BigDecimal price, BigDecimal compareAtPrice,
+                              String sku, int stock, String imageUrl) {
+        public static VariantView of(ProductVariant v) {
+            return new VariantView(v.id, v.values(), v.title(), v.price, v.compareAtPrice, v.sku, v.stock, v.imageUrl);
         }
     }
 

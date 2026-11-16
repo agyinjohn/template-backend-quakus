@@ -22,6 +22,12 @@ public class OrderItem extends PanacheEntity {
     @Column(nullable = false)
     public String name;
 
+    /** Set when a specific variant was bought; kept even if the variant is later deleted. */
+    public Long variantId;
+
+    /** e.g. "M / Red" */
+    public String variantTitle;
+
     public String imageUrl;
 
     @Column(nullable = false, precision = 12, scale = 2)

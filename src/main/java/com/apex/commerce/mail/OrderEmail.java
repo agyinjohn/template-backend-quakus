@@ -19,7 +19,7 @@ public record OrderEmail(
 
     public enum Kind { PLACED, STATUS_CHANGED }
 
-    public record Line(String name, int quantity, BigDecimal unitPrice, BigDecimal lineTotal) {}
+    public record Line(String name, String variant, int quantity, BigDecimal unitPrice, BigDecimal lineTotal) {}
 
     public static OrderEmail of(Kind kind, CustomerOrder o) {
         var s = o.store;
@@ -27,7 +27,7 @@ public record OrderEmail(
                 .firstResultOptional().map(u -> u.email).orElse(null);
         return new OrderEmail(kind, s.name, s.slug, s.email, s.phone, owner,
                 o.number, o.id, o.status, o.customerName, o.email, o.phone, o.address, o.city, o.country, o.notes,
-                o.items.stream().map(i -> new Line(i.name, i.quantity, i.unitPrice, i.lineTotal)).toList(),
+                o.items.stream().map(i -> new Line(i.name, i.variantTitle, i.quantity, i.unitPrice, i.lineTotal)).toList(),
                 o.total, o.currency, o.paymentMethod.label, o.isPaid(), channelLabel(o.paymentChannel),
                 o.paymentMethod == CustomerOrder.PaymentMethod.BANK_TRANSFER && !o.isPaid() ? s.bankTransferInstructions : null);
     }

@@ -67,7 +67,7 @@ public class OrderMailer {
                 "o", e,
                 "total", money(e.total(), e.currency()),
                 "lines", e.items().stream().map(l -> Map.of(
-                        "name", l.name(), "quantity", l.quantity(),
+                        "name", l.variant() == null ? l.name() : l.name() + " (" + l.variant() + ")", "quantity", l.quantity(),
                         "unit", money(l.unitPrice(), e.currency()), "line", money(l.lineTotal(), e.currency()))).toList(),
                 "storeUrl", base + "/s/" + e.storeSlug() + "/",
                 "adminUrl", base + "/admin#/orders/" + e.orderId());

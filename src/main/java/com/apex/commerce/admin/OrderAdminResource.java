@@ -61,9 +61,7 @@ public class OrderAdminResource {
         }
         if (req.status() == CustomerOrder.Status.CANCELLED && o.status != CustomerOrder.Status.CANCELLED) {
             for (OrderItem item : o.items) {
-                if (item.productId != null) {
-                    Product.update("stock = stock + ?1 where id = ?2", item.quantity, item.productId);
-                }
+                com.apex.commerce.catalog.Inventory.release(item.productId, item.variantId, item.quantity);
             }
         }
         boolean changed = o.status != req.status();
