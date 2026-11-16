@@ -5,7 +5,6 @@ import com.apex.commerce.common.Slugs;
 import com.apex.commerce.store.Store;
 import com.apex.commerce.store.StoreView;
 import io.quarkus.elytron.security.common.BcryptUtil;
-import io.smallrye.jwt.build.Jwt;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -16,9 +15,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import java.time.Duration;
 import java.util.Set;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/api/auth")
 public class AuthResource {
@@ -32,7 +29,7 @@ public class AuthResource {
     public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {}
 
     public record UserView(Long id, String fullName, String email, String role) {
-        static UserView of(AppUser u) {
+        public static UserView of(AppUser u) {
             return new UserView(u.id, u.fullName, u.email, u.role);
         }
     }
@@ -46,11 +43,10 @@ public class AuthResource {
     @Inject
     CurrentUser currentUser;
 
-    @ConfigProperty(name = "app.jwt.issuer")
-    String issuer;
+    @Inject
+    Sessions sessions;
 
-    @ConfigProperty(name = "app.jwt.ttl-hours")
-    long ttlHours;
+
 
     @POST
     @Path("/signup")
@@ -93,13 +89,6 @@ public class AuthResource {
     }
 
     private Session session(AppUser user) {
-        String token = Jwt.issuer(issuer)
-                .subject(String.valueOf(user.id))
-                .upn(user.email)
-                .groups(Set.of(user.role))
-                .claim("storeId", user.store.id)
-                .expiresIn(Duration.ofHours(ttlHours))
-                .sign();
-        return new Session(token, UserView.of(user), StoreView.of(user.store));
+        return sessions.create(user);
     }
 }

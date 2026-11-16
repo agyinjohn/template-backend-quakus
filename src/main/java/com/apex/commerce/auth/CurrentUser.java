@@ -24,6 +24,11 @@ public class CurrentUser {
             if (user == null) {
                 throw ApiException.unauthorized("Account no longer exists");
             }
+            // a password change/reset signs out every session that existed before it
+            if (user.passwordChangedAt != null && jwt.getIssuedAtTime() < user.passwordChangedAt.getEpochSecond()) {
+                user = null;
+                throw ApiException.unauthorized("Your password was changed. Please log in again.");
+            }
         }
         return user;
     }

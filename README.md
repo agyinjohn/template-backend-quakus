@@ -55,6 +55,9 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | POST | `/api/auth/signup` | `{fullName, email, password, storeName}` → token, user, store |
 | POST | `/api/auth/login` | `{email, password}` → token, user, store |
 | GET | `/api/auth/me` | current user and store |
+| POST | `/api/auth/password/forgot` | `{email}` → always 202; emails a reset link if the account exists (max 3 per hour) |
+| POST | `/api/auth/password/reset` | `{token, password}` → new session; link is single-use, valid 1 hour |
+| POST | `/api/auth/password/change` | `{currentPassword, newPassword}` (logged in) → new session |
 | GET | `/api/templates` | storefront templates owners can choose from |
 | GET/PUT | `/api/admin/store` | store settings (name, contact, currency, socials, published) |
 | PUT | `/api/admin/store/template` | `{templateId, addSampleProducts}`: choose or change the design |
@@ -69,6 +72,14 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | GET | `/api/public/stores/{slug}/products` | `category`, `q`, `featured`, `sort`, `page`, `size` |
 | GET | `/api/public/stores/{slug}/products/{productSlug}` | |
 | POST | `/api/public/stores/{slug}/orders` | checkout; prices come from the database and stock is reserved atomically |
+
+## Accounts and password reset
+
+Reset links contain a random 256-bit token; only its SHA-256 hash is stored, it works once, expires
+after an hour, and requesting a new link invalidates the previous one. The forgot-password response is
+identical whether or not the email has an account. After a reset or change, every login token issued
+before it is rejected (`passwordChangedAt`), so other devices are signed out, and the owner gets a
+"password changed" email.
 
 ## Payments
 

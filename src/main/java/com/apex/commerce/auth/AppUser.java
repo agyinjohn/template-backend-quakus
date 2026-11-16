@@ -33,6 +33,9 @@ public class AppUser extends PanacheEntity {
     @Column(nullable = false)
     public Instant createdAt = Instant.now();
 
+    /** Login tokens issued before this moment are rejected (set when the password changes). */
+    public Instant passwordChangedAt;
+
     public static Optional<AppUser> findByEmail(String email) {
         return find("email", email.trim().toLowerCase()).firstResultOptional();
     }
