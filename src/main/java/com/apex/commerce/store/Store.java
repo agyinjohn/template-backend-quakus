@@ -59,6 +59,23 @@ public class Store extends PanacheEntity {
     @Column(nullable = false, columnDefinition = "boolean default true")
     public boolean cashOnDeliveryEnabled = true;
 
+    // ------------------------------------------------------------ taxes
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean taxesEnabled = false;
+
+    /** e.g. [{name: "VAT", rate: 15}, {name: "NHIL", rate: 2.5}] */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 2000)
+    public java.util.List<com.apex.commerce.pricing.Pricing.TaxRate> taxRates = new java.util.ArrayList<>();
+
+    /** Prices already include tax (shown as "includes VAT …"); otherwise tax is added at checkout. */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean taxIncluded = true;
+
+    /** Charge tax on the delivery fee too. */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean taxDelivery = false;
+
     public boolean paystackConnected() {
         return paystackSecretKeyEnc != null;
     }

@@ -15,7 +15,9 @@ public record OrderEmail(
         String number, Long orderId, CustomerOrder.Status status,
         String customerName, String customerEmail, String phone, String address, String city, String country,
         String notes, List<Line> items, BigDecimal total, String currency,
-        String paymentMethod, boolean paid, String paymentChannel, String paymentInstructions) {
+        String paymentMethod, boolean paid, String paymentChannel, String paymentInstructions,
+        BigDecimal subtotal, String deliveryName, BigDecimal deliveryFee, boolean pickup,
+        List<com.apex.commerce.pricing.Pricing.TaxLine> taxes, boolean taxIncluded) {
 
     public enum Kind { PLACED, STATUS_CHANGED }
 
@@ -29,7 +31,9 @@ public record OrderEmail(
                 o.number, o.id, o.status, o.customerName, o.email, o.phone, o.address, o.city, o.country, o.notes,
                 o.items.stream().map(i -> new Line(i.name, i.variantTitle, i.quantity, i.unitPrice, i.lineTotal)).toList(),
                 o.total, o.currency, o.paymentMethod.label, o.isPaid(), channelLabel(o.paymentChannel),
-                o.paymentMethod == CustomerOrder.PaymentMethod.BANK_TRANSFER && !o.isPaid() ? s.bankTransferInstructions : null);
+                o.paymentMethod == CustomerOrder.PaymentMethod.BANK_TRANSFER && !o.isPaid() ? s.bankTransferInstructions : null,
+                o.subtotal, o.deliveryName, o.deliveryFee, o.pickup,
+                o.taxes == null ? List.of() : List.copyOf(o.taxes), o.taxIncluded);
     }
 
     static String channelLabel(String channel) {

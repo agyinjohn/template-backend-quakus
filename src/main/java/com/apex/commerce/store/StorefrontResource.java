@@ -45,13 +45,29 @@ public class StorefrontResource {
             @NotBlank @Size(max = 120) String customerName,
             @NotBlank @Email String email,
             @Size(max = 40) String phone,
-            @NotBlank @Size(max = 300) String address,
-            @NotBlank @Size(max = 100) String city,
+            /** Required unless the chosen delivery option is a pickup. */
+            @Size(max = 300) String address,
+            @Size(max = 100) String city,
             @Size(max = 100) String country,
             @Size(max = 2000) String notes,
             @NotEmpty @Size(max = 50) List<@Valid CheckoutItem> items,
             /** Defaults to the store's first available method. */
-            CustomerOrder.PaymentMethod paymentMethod) {}
+            CustomerOrder.PaymentMethod paymentMethod,
+            /** Required when the store has delivery options. */
+            Long deliveryOptionId) {}
+
+    public record QuoteRequest(@NotEmpty @Size(max = 50) List<@Valid CheckoutItem> items, Long deliveryOptionId) {}
+
+    /** A priced cart line, before stock is reserved. */
+    private record Line(Product product, com.apex.commerce.catalog.ProductVariant variant, int quantity, BigDecimal unitPrice) {
+        BigDecimal total() {
+            return unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        String label() {
+            return variant == null ? product.name : product.name + " (" + variant.title() + ")";
+        }
+    }
 
     /**
      * {@code confirmationEmail}: the address a confirmation was sent to, or null if none was sent (yet).
@@ -175,36 +191,19 @@ public class StorefrontResource {
         order.notes = req.notes();
         order.paymentMethod = choosePaymentMethod(store, req.paymentMethod());
 
-        // the same product/variant added twice counts as one line
-        Map<List<Long>, Integer> quantities = new java.util.LinkedHashMap<>();
-        for (CheckoutItem i : req.items()) {
-            quantities.merge(java.util.Arrays.asList(i.productId(), i.variantId()), i.quantity(), Integer::sum);
+        com.apex.commerce.pricing.DeliveryOption delivery = chooseDelivery(store, req.deliveryOptionId());
+        boolean pickup = delivery != null && delivery.pickup;
+        if (!pickup && (isBlank(req.address()) || isBlank(req.city()))) {
+            throw ApiException.badRequest("Please enter your delivery address and town or city");
         }
         BigDecimal subtotal = BigDecimal.ZERO;
-        for (var entry : quantities.entrySet()) {
-            Long productId = entry.getKey().get(0);
-            Long variantId = entry.getKey().get(1);
-            Product p = Product.findById(productId);
-            if (p == null || !p.store.id.equals(store.id) || p.status != Product.Status.ACTIVE) {
-                throw ApiException.badRequest("Product " + productId + " is not available");
-            }
-            com.apex.commerce.catalog.ProductVariant variant = null;
-            if (p.hasVariants()) {
-                variant = p.variants.stream().filter(v -> v.id.equals(variantId)).findFirst().orElse(null);
-                if (variant == null) {
-                    throw ApiException.badRequest("Please choose " + p.options.stream()
-                            .map(o -> o.name().toLowerCase()).collect(java.util.stream.Collectors.joining(" and ")) + " for " + p.name);
-                }
-            } else if (variantId != null) {
-                throw ApiException.badRequest(p.name + " has no options to choose");
-            }
-            int qty = entry.getValue();
-            if (!com.apex.commerce.catalog.Inventory.reserve(p.id, variant == null ? null : variant.id, qty)) {
+        for (Line line : resolve(store, req.items())) {
+            Product p = line.product();
+            var variant = line.variant();
+            if (!com.apex.commerce.catalog.Inventory.reserve(p.id, variant == null ? null : variant.id, line.quantity())) {
                 int left = variant == null ? p.stock : variant.stock;
-                String what = variant == null ? p.name : p.name + " (" + variant.title() + ")";
-                throw ApiException.conflict(left == 0 ? what + " is sold out" : "Only " + left + " left of " + what);
+                throw ApiException.conflict(left == 0 ? line.label() + " is sold out" : "Only " + left + " left of " + line.label());
             }
-            BigDecimal unit = variant == null ? p.price : variant.effectivePrice();
             OrderItem item = new OrderItem();
             item.order = order;
             item.productId = p.id;
@@ -213,16 +212,26 @@ public class StorefrontResource {
                 item.variantId = variant.id;
                 item.variantTitle = variant.title();
             }
-            String image = variant != null && variant.imageUrl != null ? variant.imageUrl : p.images.isEmpty() ? null : p.images.get(0);
-            item.imageUrl = image;
-            item.unitPrice = unit;
-            item.quantity = qty;
-            item.lineTotal = unit.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP);
+            item.imageUrl = variant != null && variant.imageUrl != null ? variant.imageUrl : p.images.isEmpty() ? null : p.images.get(0);
+            item.unitPrice = line.unitPrice();
+            item.quantity = line.quantity();
+            item.lineTotal = line.total();
             order.items.add(item);
             subtotal = subtotal.add(item.lineTotal);
         }
-        order.subtotal = subtotal;
-        order.total = subtotal; // shipping/tax rules can be added per store later
+        var quote = com.apex.commerce.pricing.Pricing.quote(store, subtotal, delivery);
+        order.subtotal = quote.subtotal();
+        order.deliveryName = quote.deliveryName();
+        order.deliveryFee = quote.deliveryFee();
+        order.pickup = pickup;
+        order.taxes = new java.util.ArrayList<>(quote.taxes());
+        order.taxTotal = quote.taxTotal();
+        order.taxIncluded = quote.taxIncluded();
+        order.total = quote.total();
+        if (pickup) {
+            order.address = isBlank(req.address()) ? null : req.address();
+            order.city = isBlank(req.city()) ? null : req.city();
+        }
         order.number = newOrderNumber();
         order.persist();
 
@@ -244,6 +253,67 @@ public class StorefrontResource {
         return Response.status(Response.Status.CREATED)
                 .entity(confirmation(order, mailer.isEnabled() ? order.email : null, null))
                 .build();
+    }
+
+    /**
+     * Prices a cart without placing an order: item prices, delivery fee, taxes and
+     * total, exactly as checkout will charge them. The checkout page calls this
+     * whenever the shopper changes the delivery option.
+     */
+    @POST
+    @Path("/quote")
+    public com.apex.commerce.pricing.Pricing.Quote quote(@PathParam("slug") String slug, @Valid QuoteRequest req) {
+        Store store = published(slug);
+        var delivery = req.deliveryOptionId() == null && com.apex.commerce.pricing.DeliveryOption.count("store", store) > 0
+                ? null // not chosen yet: show items and taxes only
+                : chooseDelivery(store, req.deliveryOptionId());
+        BigDecimal subtotal = resolve(store, req.items()).stream().map(Line::total).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return com.apex.commerce.pricing.Pricing.quote(store, subtotal, delivery);
+    }
+
+    /** Validates and prices cart lines (merging repeats), without touching stock. */
+    private static List<Line> resolve(Store store, List<CheckoutItem> items) {
+        Map<List<Long>, Integer> quantities = new java.util.LinkedHashMap<>();
+        for (CheckoutItem i : items) {
+            quantities.merge(java.util.Arrays.asList(i.productId(), i.variantId()), i.quantity(), Integer::sum);
+        }
+        List<Line> lines = new java.util.ArrayList<>();
+        for (var entry : quantities.entrySet()) {
+            Long productId = entry.getKey().get(0);
+            Long variantId = entry.getKey().get(1);
+            Product p = Product.findById(productId);
+            if (p == null || !p.store.id.equals(store.id) || p.status != Product.Status.ACTIVE) {
+                throw ApiException.badRequest("Product " + productId + " is not available");
+            }
+            com.apex.commerce.catalog.ProductVariant variant = null;
+            if (p.hasVariants()) {
+                variant = p.variants.stream().filter(v -> v.id.equals(variantId)).findFirst().orElse(null);
+                if (variant == null) {
+                    throw ApiException.badRequest("Please choose " + p.options.stream()
+                            .map(o -> o.name().toLowerCase()).collect(java.util.stream.Collectors.joining(" and ")) + " for " + p.name);
+                }
+            } else if (variantId != null) {
+                throw ApiException.badRequest(p.name + " has no options to choose");
+            }
+            lines.add(new Line(p, variant, entry.getValue(), variant == null ? p.price : variant.effectivePrice()));
+        }
+        return lines;
+    }
+
+    private static com.apex.commerce.pricing.DeliveryOption chooseDelivery(Store store, Long id) {
+        List<com.apex.commerce.pricing.DeliveryOption> options = com.apex.commerce.pricing.DeliveryOption.list("store", store);
+        if (options.isEmpty()) {
+            return null; // the store doesn't charge for delivery
+        }
+        if (id == null) {
+            throw ApiException.badRequest("Please choose a delivery option");
+        }
+        return options.stream().filter(o -> o.id.equals(id)).findFirst()
+                .orElseThrow(() -> ApiException.badRequest("That delivery option isn't available"));
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
     }
 
     /**

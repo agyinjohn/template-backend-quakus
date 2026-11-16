@@ -69,6 +69,7 @@ public class OrderMailer {
                 "lines", e.items().stream().map(l -> Map.of(
                         "name", l.variant() == null ? l.name() : l.name() + " (" + l.variant() + ")", "quantity", l.quantity(),
                         "unit", money(l.unitPrice(), e.currency()), "line", money(l.lineTotal(), e.currency()))).toList(),
+                "breakdown", breakdown(e),
                 "storeUrl", base + "/s/" + e.storeSlug() + "/",
                 "adminUrl", base + "/admin#/orders/" + e.orderId());
         if (e.kind() == OrderEmail.Kind.PLACED) {
@@ -119,6 +120,25 @@ public class OrderMailer {
         var instance = t.instance();
         data.forEach(instance::data);
         return instance.render();
+    }
+
+    /** Subtotal, delivery and tax rows shown above the total. */
+    static java.util.List<Map<String, String>> breakdown(OrderEmail e) {
+        var rows = new java.util.ArrayList<Map<String, String>>();
+        boolean extras = e.deliveryName() != null || (e.taxes() != null && !e.taxes().isEmpty());
+        if (!extras) {
+            return rows;
+        }
+        rows.add(Map.of("label", "Subtotal", "amount", money(e.subtotal(), e.currency())));
+        if (e.deliveryName() != null) {
+            rows.add(Map.of("label", (e.pickup() ? "Pickup: " : "Delivery: ") + e.deliveryName(),
+                    "amount", e.deliveryFee().signum() == 0 ? "Free" : money(e.deliveryFee(), e.currency())));
+        }
+        for (var t : e.taxes()) {
+            String label = (e.taxIncluded() ? "Includes " : "") + t.name() + " (" + t.rate().stripTrailingZeros().toPlainString() + "%)";
+            rows.add(Map.of("label", label, "amount", money(t.amount(), e.currency())));
+        }
+        return rows;
     }
 
     static String money(BigDecimal amount, String currency) {

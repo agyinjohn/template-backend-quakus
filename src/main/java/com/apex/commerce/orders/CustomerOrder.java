@@ -61,6 +61,26 @@ public class CustomerOrder extends PanacheEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     public BigDecimal subtotal = BigDecimal.ZERO;
 
+    /** Delivery option chosen at checkout (copied, so later edits to the option don't change the order). */
+    public String deliveryName;
+
+    @Column(nullable = false, precision = 12, scale = 2, columnDefinition = "numeric(12,2) default 0")
+    public BigDecimal deliveryFee = BigDecimal.ZERO;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean pickup = false;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 2000)
+    public java.util.List<com.apex.commerce.pricing.Pricing.TaxLine> taxes = new java.util.ArrayList<>();
+
+    @Column(nullable = false, precision = 12, scale = 2, columnDefinition = "numeric(12,2) default 0")
+    public BigDecimal taxTotal = BigDecimal.ZERO;
+
+    /** Prices included the taxes (so {@link #taxTotal} is part of, not added to, the total). */
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    public boolean taxIncluded = true;
+
     @Column(nullable = false, precision = 12, scale = 2)
     public BigDecimal total = BigDecimal.ZERO;
 

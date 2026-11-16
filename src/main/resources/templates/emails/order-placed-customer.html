@@ -17,6 +17,12 @@
         <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap">{l.line}</td>
       </tr>
       {/for}
+      {#for b in breakdown}
+      <tr>
+        <td style="padding:6px 0 0;color:#4b5563">{b.label}</td>
+        <td style="padding:6px 0 0;text-align:right;white-space:nowrap;color:#4b5563">{b.amount}</td>
+      </tr>
+      {/for}
       <tr>
         <td style="padding:12px 0 0;font-weight:bold">Total</td>
         <td style="padding:12px 0 0;font-weight:bold;text-align:right">{total}</td>
@@ -24,8 +30,13 @@
     </table>
   </td></tr>
   <tr><td style="padding:8px 28px 16px;font-size:14px;line-height:1.5">
+    {#if o.pickup}
+    <p style="margin:0 0 4px;font-weight:bold">Pickup</p>
+    <p style="margin:0">{o.deliveryName}. The store will let you know when your order is ready to collect.</p>
+    {#else}
     <p style="margin:0 0 4px;font-weight:bold">Delivery address</p>
     <p style="margin:0">{o.customerName}<br>{o.address}<br>{o.city}{#if o.country}, {o.country}{/if}{#if o.phone}<br>{o.phone}{/if}</p>
+    {/if}
     <p style="margin:12px 0 0"><strong>Payment:</strong> {o.paymentMethod}{#if o.paid} (paid){/if}</p>
     {#if o.paymentInstructions}
     <div style="margin:12px 0 0;padding:12px 14px;background:#fff7ed;border-radius:6px;white-space:pre-line">{o.paymentInstructions}</div>

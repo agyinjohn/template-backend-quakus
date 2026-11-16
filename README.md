@@ -69,9 +69,23 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | POST | `/api/admin/uploads` | multipart `file` → `{url, path}` (images up to 5 MB) |
 | GET | `/api/public/stores/{slug}` | store + chosen template (unpublished stores 404) |
 | GET | `/api/public/stores/{slug}/categories` | |
+| POST | `/api/public/stores/{slug}/quote` | `{items, deliveryOptionId}` → subtotal, delivery fee, tax lines, total (what checkout will charge) |
 | GET | `/api/public/stores/{slug}/products` | `category`, `q`, `featured`, `sort`, `page`, `size` |
 | GET | `/api/public/stores/{slug}/products/{productSlug}` | |
 | POST | `/api/public/stores/{slug}/orders` | checkout; prices come from the database and stock is reserved atomically |
+
+## Delivery and taxes
+
+Stores set up **delivery options** (`PUT /api/admin/store/delivery`): name, fee, optional "free over"
+amount, a description such as "1–2 working days", and whether it's a pickup (no address needed). With no
+options, delivery isn't charged. Checkout requires `deliveryOptionId` when a store has options.
+
+**Taxes** (`PUT /api/admin/store/taxes`): up to 3 named rates (e.g. VAT 15%, NHIL 2.5%, GETFund 2.5%),
+either included in prices (receipts show the included amount, totals don't change) or added on top, and
+optionally applied to the delivery fee. Each tax is rounded to the cent.
+
+`Pricing.quote` computes the breakdown for the live checkout quote and the order alike; orders store the
+subtotal, delivery name and fee, each tax line and the total, and Paystack is charged that total.
 
 ## Product options (variants)
 

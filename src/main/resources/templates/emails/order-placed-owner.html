@@ -17,6 +17,12 @@
         <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap">{l.line}</td>
       </tr>
       {/for}
+      {#for b in breakdown}
+      <tr>
+        <td style="padding:6px 0 0;color:#4b5563">{b.label}</td>
+        <td style="padding:6px 0 0;text-align:right;white-space:nowrap;color:#4b5563">{b.amount}</td>
+      </tr>
+      {/for}
       <tr>
         <td style="padding:12px 0 0;font-weight:bold">Total</td>
         <td style="padding:12px 0 0;font-weight:bold;text-align:right">{total}</td>
@@ -24,8 +30,12 @@
     </table>
   </td></tr>
   <tr><td style="padding:8px 28px 16px;font-size:14px;line-height:1.5">
-    <p style="margin:0 0 4px;font-weight:bold">Deliver to</p>
+    {#if o.pickup}
+    <p style="margin:0 0 4px;font-weight:bold">Customer will collect ({o.deliveryName})</p>
+    {#else}
+    <p style="margin:0 0 4px;font-weight:bold">Deliver to{#if o.deliveryName} ({o.deliveryName}){/if}</p>
     <p style="margin:0">{o.address}<br>{o.city}{#if o.country}, {o.country}{/if}</p>
+    {/if}
     {#if o.notes}<p style="margin:12px 0 0;white-space:pre-line;color:#4b5563">{o.notes}</p>{/if}
   </td></tr>
   <tr><td style="padding:8px 28px 28px">
