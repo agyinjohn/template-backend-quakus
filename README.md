@@ -21,6 +21,11 @@ createdb apex_commerce -O apex
 ./mvnw test                         # tests use in-memory H2, no database needed
 ```
 
+## Docker
+
+`Dockerfile` builds a production image (`docker build -t apex-backend .`). The full stack (database,
+frontend, HTTPS) is set up with Docker Compose from the frontend repo: see its `deploy/DEPLOY.md`.
+
 ## Configuration (environment variables)
 
 | Variable | Default | Purpose |
