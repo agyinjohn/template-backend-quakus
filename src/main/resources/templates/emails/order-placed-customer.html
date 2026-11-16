@@ -1,0 +1,36 @@
+<!doctype html>
+<html><body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#111827">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:24px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px">
+  <tr><td style="padding:28px 28px 8px">
+    <p style="margin:0 0 4px;font-size:14px;color:#6b7280">{o.storeName}</p>
+    <h1 style="margin:0;font-size:22px">Thank you for your order, {o.customerName}!</h1>
+    <p style="margin:12px 0 0;font-size:15px;line-height:1.5">We've received your order <strong>{o.number}</strong>.
+      The store will be in touch about payment and delivery.</p>
+  </td></tr>
+  <tr><td style="padding:16px 28px">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse">
+      {#for l in lines}
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #e5e7eb">{l.name} &times; {l.quantity}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap">{l.line}</td>
+      </tr>
+      {/for}
+      <tr>
+        <td style="padding:12px 0 0;font-weight:bold">Total</td>
+        <td style="padding:12px 0 0;font-weight:bold;text-align:right">{total}</td>
+      </tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:8px 28px 16px;font-size:14px;line-height:1.5">
+    <p style="margin:0 0 4px;font-weight:bold">Delivery address</p>
+    <p style="margin:0">{o.customerName}<br>{o.address}<br>{o.city}{#if o.country}, {o.country}{/if}{#if o.phone}<br>{o.phone}{/if}</p>
+    {#if o.notes}<p style="margin:12px 0 0;white-space:pre-line;color:#4b5563">{o.notes}</p>{/if}
+  </td></tr>
+  <tr><td style="padding:8px 28px 28px;font-size:14px;line-height:1.5;color:#4b5563">
+    Questions? Just reply to this email{#if o.storePhone} or call {o.storePhone}{/if}.<br>
+    <a href="{storeUrl}" style="color:#c2410c">Visit {o.storeName}</a>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>

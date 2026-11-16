@@ -50,7 +50,15 @@ public class StorefrontResource {
             @Size(max = 2000) String notes,
             @NotEmpty @Size(max = 50) List<@Valid CheckoutItem> items) {}
 
-    public record OrderConfirmation(String number, BigDecimal total, String currency, String status) {}
+    /** {@code confirmationEmail} is the address a confirmation was sent to, or null if email is off. */
+    public record OrderConfirmation(String number, BigDecimal total, String currency, String status,
+                                    String confirmationEmail) {}
+
+    @jakarta.inject.Inject
+    jakarta.enterprise.event.Event<com.apex.commerce.mail.OrderEmail> orderEvents;
+
+    @jakarta.inject.Inject
+    com.apex.commerce.mail.OrderMailer mailer;
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -164,8 +172,11 @@ public class StorefrontResource {
         order.total = subtotal; // shipping/tax rules can be added per store later
         order.number = newOrderNumber();
         order.persist();
+        // emails go out after the transaction commits (see OrderMailer)
+        orderEvents.fire(com.apex.commerce.mail.OrderEmail.of(com.apex.commerce.mail.OrderEmail.Kind.PLACED, order));
         return Response.status(Response.Status.CREATED)
-                .entity(new OrderConfirmation(order.number, order.total, order.currency, order.status.name()))
+                .entity(new OrderConfirmation(order.number, order.total, order.currency, order.status.name(),
+                        mailer.isEnabled() ? order.email : null))
                 .build();
     }
 

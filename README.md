@@ -30,6 +30,12 @@ createdb apex_commerce -O apex
 | `CORS_ORIGINS` | `http://localhost:4321` | Comma-separated frontend origins |
 | `APP_PUBLIC_URL` | `http://localhost:8080` | Base URL used in uploaded image links |
 | `APP_UPLOAD_DIR` | `uploads` | Where uploaded images are stored |
+| `APP_FRONTEND_URL` | `http://localhost:4321` | Frontend URL used for links in emails |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` | `localhost`, `587` | SMTP server for order emails (any provider: SendGrid, Mailgun, Amazon SES, Gmail…) |
+| `MAIL_FROM` | `Apex Commerce <orders@apex-commerce.local>` | Sending address. Shopper emails show the store's name with this address. |
+| `MAIL_START_TLS`, `MAIL_LOGIN` | `REQUIRED`, `REQUIRED` | Set to `DISABLED` for a local test SMTP server |
+| `MAIL_MOCK` | `true` in dev/test, `false` in production | `true` logs emails instead of sending them |
+| `MAIL_ENABLED` | `true` | `false` turns order emails off entirely (checkout then doesn't promise one) |
 
 Generate production keys with:
 
@@ -60,6 +66,20 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | GET | `/api/public/stores/{slug}/products` | `category`, `q`, `featured`, `sort`, `page`, `size` |
 | GET | `/api/public/stores/{slug}/products/{productSlug}` | |
 | POST | `/api/public/stores/{slug}/orders` | checkout; prices come from the database and stock is reserved atomically |
+
+## Order emails
+
+Sent after the order is saved, in the background (a mail outage never blocks a checkout; failures are logged):
+
+| When | To | Reply-to |
+|---|---|---|
+| Order placed | shopper: confirmation with items, total, address, payment method | store |
+| Order placed | store contact email (or the owner's login email): new-order alert with a dashboard link | shopper |
+| Status → paid, shipped, delivered, cancelled | shopper: status update | store |
+
+Templates are in `src/main/resources/templates/emails` (Qute, HTML-escaped). The checkout response
+includes `confirmationEmail` (the address emailed, or `null` when emails are off) so the storefront
+only promises an email that was sent.
 
 ## Adding a template
 

@@ -29,6 +29,9 @@ public class OrderAdminResource {
     @Inject
     CurrentUser currentUser;
 
+    @Inject
+    jakarta.enterprise.event.Event<com.apex.commerce.mail.OrderEmail> orderEvents;
+
     @GET
     public Page<CustomerOrder> list(@QueryParam("status") CustomerOrder.Status status,
                                     @QueryParam("page") @DefaultValue("0") int page,
@@ -63,7 +66,12 @@ public class OrderAdminResource {
                 }
             }
         }
+        boolean changed = o.status != req.status();
         o.status = req.status();
+        if (changed) {
+            // the shopper is emailed about payment, shipping, delivery and cancellation
+            orderEvents.fire(com.apex.commerce.mail.OrderEmail.of(com.apex.commerce.mail.OrderEmail.Kind.STATUS_CHANGED, o));
+        }
         return o;
     }
 
