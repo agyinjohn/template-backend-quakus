@@ -71,6 +71,34 @@ public class Store extends PanacheEntity {
     public record Banner(String eyebrow, String title, String text, String buttonLabel, String link,
                          String imageUrl, String videoUrl) {}
 
+    /**
+     * Owner's changes to the template's promo blocks, keyed "&lt;templateId&gt;/&lt;block&gt;" (e.g.
+     * "ecomas-01/offer-1"). A missing field keeps the template's text; "" removes it.
+     */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 20000)
+    public java.util.Map<String, Promo> promos = new java.util.HashMap<>();
+
+    public record Promo(String eyebrow, String title, String text, String buttonLabel, String link,
+                        String imageUrl, Boolean hidden) {}
+
+    /** The "Free delivery / Returns / …" strip. Null: the template's items. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 4000)
+    public java.util.List<Feature> features;
+
+    public record Feature(String title, String text) {}
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean featuresHidden = false;
+
+    /** Real customer reviews. Empty: the template's testimonial section is hidden (its reviews are made up). */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 10000)
+    public java.util.List<Testimonial> testimonials = new java.util.ArrayList<>();
+
+    public record Testimonial(String name, String role, String quote, Integer rating) {}
+
     // ------------------------------------------------------------ taxes
     @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean taxesEnabled = false;
