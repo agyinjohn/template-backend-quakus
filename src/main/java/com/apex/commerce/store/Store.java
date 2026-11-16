@@ -59,6 +59,18 @@ public class Store extends PanacheEntity {
     @Column(nullable = false, columnDefinition = "boolean default true")
     public boolean cashOnDeliveryEnabled = true;
 
+    // ------------------------------------------------------------ homepage
+    /** Homepage hero banners, in order. Empty: the template's own demo banner is shown. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(length = 10000)
+    public java.util.List<Banner> banners = new java.util.ArrayList<>();
+
+    /**
+     * @param link "shop", "category:&lt;slug&gt;", "product:&lt;slug&gt;", or a URL (https://… or /…)
+     */
+    public record Banner(String eyebrow, String title, String text, String buttonLabel, String link,
+                         String imageUrl, String videoUrl) {}
+
     // ------------------------------------------------------------ taxes
     @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean taxesEnabled = false;

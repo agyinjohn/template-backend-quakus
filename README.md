@@ -60,6 +60,7 @@ Authenticated endpoints take `Authorization: Bearer <token>` from signup/login.
 | POST | `/api/auth/password/change` | `{currentPassword, newPassword}` (logged in) → new session |
 | GET | `/api/templates` | storefront templates owners can choose from |
 | GET/PUT | `/api/admin/store` | store settings (name, contact, currency, socials, published) |
+| GET/PUT | `/api/admin/store/banners` | homepage hero banners (up to 5): eyebrow, title, text, button label, link (`shop`, `category:slug`, `product:slug`, `https://…`, `/…`), image, YouTube/Vimeo video |
 | PUT | `/api/admin/store/template` | `{templateId, addSampleProducts}`: choose or change the design |
 | POST | `/api/admin/store/sample-data` | add demo products matching the template |
 | GET/POST/PUT/DELETE | `/api/admin/products[/{id}]` | product CRUD, search `q`, filter `categoryId`, `status`; `options` + `variants` for sizes/colours (see below) |

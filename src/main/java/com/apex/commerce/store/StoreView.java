@@ -11,7 +11,8 @@ public record StoreView(
         String announcement, String facebookUrl, String instagramUrl, String twitterUrl, boolean published,
         List<CustomerOrder.PaymentMethod> paymentMethods,
         List<DeliveryOptionView> deliveryOptions, boolean taxesEnabled, boolean taxIncluded,
-        List<com.apex.commerce.pricing.Pricing.TaxRate> taxRates) {
+        List<com.apex.commerce.pricing.Pricing.TaxRate> taxRates,
+        List<Store.Banner> banners) {
 
     public record DeliveryOptionView(Long id, String name, String description, java.math.BigDecimal price,
                                      java.math.BigDecimal freeOver, boolean pickup) {
@@ -29,7 +30,8 @@ public record StoreView(
                         "store", io.quarkus.panache.common.Sort.ascending("position", "id"), s)
                         .stream().map(DeliveryOptionView::of).toList(),
                 s.taxesEnabled, s.taxIncluded,
-                s.taxesEnabled && s.taxRates != null ? List.copyOf(s.taxRates) : List.of());
+                s.taxesEnabled && s.taxRates != null ? List.copyOf(s.taxRates) : List.of(),
+                s.banners == null ? List.of() : List.copyOf(s.banners));
     }
 
     /** Payment methods shoppers can choose, online first. */
